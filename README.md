@@ -15,7 +15,7 @@ var cv = new CloudVariables.init({
 });
 
 var todoList = await cv.initCollection("todoList");
-// This will actually bine a todoList Collection on backend on MongoDB
+// This will actually bind a todoList Collection from MongoDB
 // If collection not found on backend, it will throw error.
 
 var previousItem = await todoList.readItem("jiu936"); // This will load item from remote DB to this variable.
