@@ -1,0 +1,31 @@
+{
+  "name": "cloud-variables-demo",
+  "version": "1.0.0",
+  "description": "WIP",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon -r esm --inspect-brk --inspect=0.0.0.0:9229 ./server.js | pino-colada",
+    "pstart": "node -r esm ./server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nsisodiya/cloud-variables-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nsisodiya/cloud-variables-demo/issues"
+  },
+  "homepage": "https://github.com/nsisodiya/cloud-variables-demo#readme",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "fastify": "^2.5.0",
+    "fastify-mongoose-driver": "^1.0.2",
+    "fastify-plugin": "^1.6.0",
+    "fastify-static": "^2.5.0",
+    "nodemon": "^1.19.1",
+    "pino-colada": "^1.4.4"
+  }
+}
