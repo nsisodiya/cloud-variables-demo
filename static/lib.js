@@ -1,5 +1,8 @@
 class MongoDbAdapter {
   constructor() {}
+  act(reqObj) {
+    return myfetch('/cloudvariables', reqObj);
+  }
 }
 
 async function myfetch(url, d) {
@@ -11,6 +14,7 @@ async function myfetch(url, d) {
     },
     body: JSON.stringify(d)
   });
+  console.log('Async Operation done');
   return await rawResponse.json();
 }
 
@@ -31,8 +35,7 @@ class Document {
   }
   async create(data) {
     console.log('Creating new document on server', data);
-    // TODO this will go in adapter
-    const response = await myfetch('/cloudvariables', {
+    const response = await this.__adapter.act({
       action: 'createDocument',
       collectionName: this.__collectionName,
       data: data
@@ -42,21 +45,55 @@ class Document {
     return this;
   }
   localCreate(data) {
+    /**
+     *  var temperature = null;
+        Object.defineProperty(this, 'temperature', {
+          enumerable: false,
+      configurable: false,
+      writable: false,
+          get() {
+            return temperature;
+          },
+          set(value) {
+            temperature = value;
+          }
+        });
+    */
+    var clonedData = JSON.parse(JSON.stringify(data));
     var self = this;
     Object.keys(data).map(function(key) {
-      self[key] = data[key];
+      Object.defineProperty(self, key, {
+        enumerable: true,
+        configurable: true,
+        get() {
+          console.log('getting value');
+          return clonedData[key];
+        },
+        set(value) {
+          console.log('setting value');
+          clonedData[key] = value;
+          // Now we need to sync
+          return self.sync();
+        }
+      });
     });
   }
   async update(partialData) {
-    const response = await myfetch('/cloudvariables', {
+    console.log('Updating document, partial');
+    const response = await this.__adapter.act({
       action: 'updateDocument',
       collectionName: this.__collectionName,
       data: Object.assign({ _id: this._id }, partialData)
     });
-    console.log('Updating document, partial');
+    return this;
   }
   async sync() {
-    console.log('TODO - Syncing document');
+    console.log('Syncing document. Sending Local changes to server');
+    const response = await this.__adapter.act({
+      action: 'updateDocument',
+      collectionName: this.__collectionName,
+      data: Object.assign(this)
+    });
     return this;
   }
 }
@@ -87,11 +124,12 @@ class Collection extends Array {
   }
   async sync() {
     console.log('Syncing all the collections data');
-    const response = await myfetch('/cloudvariables', {
+    const response = await this.__adapter.act({
       action: 'getAllDocuments',
       collectionName: this.__collectionName,
       data: {}
-    }); // TODO push all these variables into collection array one by one and don't created from server side.
+    });
+    // TODO push all these variables into collection array one by one and don't created from server side.
     //TODO check response.success
     response.collection.forEach((doc) => {
       var d = new Document({ __collectionName: this.__collectionName, __adapter: this.__adapter });
@@ -104,17 +142,19 @@ class Collection extends Array {
 }
 
 class CloudVariables {
-  constructor() {
-    this.adapter = new MongoDbAdapter();
+  constructor({ adapterType, url, scope }) {
+    if (adapterType === 'mongo') {
+      this.__adapter = new MongoDbAdapter({ url, scope });
+    }
     this.collections = [];
   }
-  Array(collectionName) {
-    var self = this;
-    return new Promise(async function(resolve, reject) {
-      var c = new Collection({ __collectionName: collectionName, __adapter: self.adapter });
-      await c.sync();
-      self.collections.push(c);
-      resolve(c);
-    });
+  async Array(collectionName) {
+    var c = new Collection({ __collectionName: collectionName, __adapter: this.__adapter });
+    await c.sync();
+    this.collections.push(c);
+    return c;
+  }
+  async Object() {
+    console.log('TODO');
   }
 }

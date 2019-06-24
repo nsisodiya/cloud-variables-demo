@@ -1,8 +1,11 @@
 async function main() {
   var cv = new CloudVariables({
+    adapterType: 'mongo',
     url: '/cloudvariables', //TODO -  use this variabble
     scope: 'dTDdfrFDE$RFDcGTFERRFFde45tfGVC' //TODO - This is like userID
   });
+  window.cv = cv;
+  return;
   var customers = await cv.Array('customer'); //this execute sync function
   window.customers = customers;
   console.log('customers', customers);
